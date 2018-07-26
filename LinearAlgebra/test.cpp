@@ -1,19 +1,17 @@
 #include <stdio.h>
 #include "LinearAlgebra.hpp"
+#include <iostream>
+#include <vector>
 int main(void)
 {
-	Matrix<float, 4, 3> a;
-	Matrix<float, 3, 4> b;
-	Matrix<float, 4, 4> c;
-	a.SetIdentity();
-	b.SetIdentity();
-	c = a*b;
-	for (size_t i = 0; i < c.rowSize(); ++i)
-	{
-		for (size_t j = 0; j < c.colSize(); ++j)
-			printf("%f\t", c[i][j]);
-		printf("\n");
-	}
+
+	Mat44f a{1,2,3,4,
+			0,2,3,4,
+			0,0,3,4,
+			0,0,0,4};
+	Mat44f b = a.Inverse();
+	std::cout << b << std::endl;
+	std::cout << b*a << std::endl;
 	getchar();
 
 

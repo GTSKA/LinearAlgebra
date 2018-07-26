@@ -2,6 +2,7 @@
 #define VECTOR_CLASS_H
 #include <math.h>
 #include <assert.h>
+#include <iostream>
 template<typename T, size_t Size>
 class Vector
 {
@@ -20,6 +21,19 @@ public:
 		v = new T[Size];
 		for (size_t i = 0; i < Size; ++i)
 			v[i] = vec.v[i];
+	}
+	Vector(std::initializer_list<T> list)
+	{
+		assert(list.size() <= Size);
+		v = new T[Size];
+		for(size_t i = 0;i<Size;++i)
+			v[i] = (T)0;
+		size_t i = 0;
+		for (const auto& l : list)
+		{
+			v[i] = l;
+			i++;
+		}
 	}
 	Vector(const Vector<T, Size - 1>& vec, T val)
 	{
@@ -136,13 +150,34 @@ public:
 			res[i] = k * vec.v[i];
 		return res;
 	}
+	friend std::ostream& operator<<(std::ostream& os, Vector<T, Size> vec)
+	{
+		os << "(";
+		for (size_t i = 0; i < Size; ++i)
+		{
+			os << vec.v[i];
+			if (i < Size - 1)
+				os << ", ";
+		}
+		os << ")" << std::endl;
+		return os;
+	}
 #pragma endregion
+	//sqrt(x1*x1+x2*x2+...+xn*xn)
 	T module()
 	{
 		T res = 0;
 		for (size_t i = 0; i < Size; ++i)
 			res += v[i] * v[i];
 		res = sqrt(res);
+		return res;
+	}
+	// x1*x1+x2*x2+...+xn*xn
+	T sqmodule()
+	{
+		T res = 0;
+		for (size_t i = 0; i < Size; ++i)
+			res += v[i] * v[i];
 		return res;
 	}
 	Vector<T, Size> normalize()
@@ -173,11 +208,32 @@ public:
 		return 0;
 	}
 #pragma endregion
-	T Dot(const Vector& vec)
+	T Dot(const Vector<T,Size>& vec)
 	{
 		T res = 0;
 		for (size_t i = 0; i < Size; ++i)
 			res += v[i] * vec.v[i];
+		return res;
+	}
+	T x()
+	{
+		return v[0];
+	}
+	Vector<T, 2> xy()
+	{
+		assert(Size >= 2);
+		Vector<T, 2> res;
+		res[0] = v[0];
+		res[1] = v[1];
+		return res;
+	}
+	Vector<T, 3> xyz()
+	{
+		assert(Size >= 3);
+		Vector<T, 3> res;
+		res[0] = v[0];
+		res[1] = v[1];
+		res[2] = v[2];
 		return res;
 	}
 	
