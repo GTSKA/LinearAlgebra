@@ -605,11 +605,18 @@ Orientation Orient2D(vec2f& a, vec2f& b, vec2f& c)
 {
 	Mat33f m{ a[0], a[1], 1.0f,
 			  b[0], b[1], 1.0f,
-			  c[0[, c[1], 1.0f };
+			  c[0], c[1], 1.0f };
 	float det = m.determinant();
 	if (det > 0) return Orientation::CCW;
 	if (det < 0) return Orientation::CW;
 	return Orientation::COLLINEAR;
+}
+float SignedArea(vec2f& a, vec2f& b, vec2f& c)
+{
+	Mat33f m{ a[0], a[1], 1.0f,
+		b[0], b[1], 1.0f,
+		c[0], c[1], 1.0f };
+	return m.determinant();
 }
 Orientation Orient3D(vec3f& a, vec3f& b, vec3f& c, vec3f& d)
 {
@@ -628,9 +635,8 @@ Orientation incircle2D(vec2f&a, vec2f& b, vec2f& c, vec2f& d)
 	p3o = Orient2D(a, b, c);
 	if (p3o == Orientation::COLLINEAR)
 		return Orientation::ERROR;
-	
 	Mat44f m{ a[0],a[1],a.sqmodule(),1.0f,
-				b[0],b[1],b.sqmodule,1.0f,
+				b[0],b[1],b.sqmodule(),1.0f,
 				c[0],c[1],c.sqmodule(),1.0f,
 				d[0],d[1],d.sqmodule(),1.0f };
 	float det = m.determinant();
@@ -649,7 +655,7 @@ Orientation incircle2D(vec2f&a, vec2f& b, vec2f& c, vec2f& d)
 Orientation insphere(vec3f& a, vec3f& b, vec3f& c, vec3f& d, vec3f& e)
 {
 	Orientation p4o;//first four points orientation
-	p40 = Orient3D(a, b, c, d);
+	p4o = Orient3D(a, b, c, d);
 	if (p4o == Orientation::COPLANAR)
 		return Orientation::ERROR;
 	Matrix<float, 5, 5> m{ a[0],a[1],a[2],a.sqmodule(),1.0f,

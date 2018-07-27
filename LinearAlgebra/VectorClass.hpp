@@ -215,9 +215,33 @@ public:
 			res += v[i] * vec.v[i];
 		return res;
 	}
+	//decompose vector v in vectors p & q, which p is parallel to the object vector and q perpendicular
+	void Decompose(Vector<T, Size>& V, Vector<T, Size>& p, Vector<T, Size>& q)
+	{
+		T uv = Dot(v);
+		T uu = sqmodule();
+		p = (uv / uu)*(*this);
+		q = v - p;
+	}
+#pragma region Subvectors
 	T x()
 	{
 		return v[0];
+	}
+	T y()
+	{
+		assert(Size >= 2);
+		return v[1];
+	}
+	T z()
+	{
+		assert(Size >= 3)
+		return v[2];
+	}
+	T w()
+	{
+		assert(Size >= 4);
+		return v[3];
 	}
 	Vector<T, 2> xy()
 	{
@@ -236,7 +260,8 @@ public:
 		res[2] = v[2];
 		return res;
 	}
-	
+#pragma endregion
+
 };
 
 typedef Vector<float, 2> vec2f;
@@ -248,22 +273,67 @@ typedef Vector<double, 3> vec3d;
 typedef Vector<double, 4> vec4d;
 
 
-vec3f Cross(vec3f& v1, vec3f& v2)
+vec3f Cross(vec3f& u, vec3f& v)
 {
 	vec3f res;
-	res[0] = v1[1] * v2[2] - v1[2] * v2[1];
-	res[1] = v1[2] * v2[0] - v1[0] * v2[2];
-	res[2] = v1[0] * v2[1] - v1[1] * v2[0];
+	float t1, t2, t3, t4;
+	t1 = u[0] - u[1];	t2 = v[1] + v[2];	t3 = u[0] * v[2];	t4 = t1*t2 - t3;
+	//res[0] = v1[1] * v2[2] - v1[2] * v2[1];
+	//res[1] = v1[2] * v2[0] - v1[0] * v2[2];
+	//res[2] = v1[0] * v2[1] - v1[1] * v2[0];
+	res[0] = v[1] * (t1 - u[2]) - t4;
+	res[1] = u[2] * v[0] - t3;
+	res[2] = t4 - u[1] * (v[0] - t2);
 	return res;
 }
 
 vec3d Cross(vec3d& v1, vec3d& v2)
 {
 	vec3d res;
-	res[0] = v1[1] * v2[2] - v1[2] * v2[1];
-	res[1] = v1[2] * v2[0] - v1[0] * v2[2];
-	res[2] = v1[0] * v2[1] - v1[1] * v2[0];
+	double t1, t2, t3, t4;
+	t1 = u[0] - u[1];	t2 = v[1] + v[2];	t3 = u[0] * v[2];	t4 = t1*t2 - t3;
+	//res[0] = v1[1] * v2[2] - v1[2] * v2[1];
+	//res[1] = v1[2] * v2[0] - v1[0] * v2[2];
+	//res[2] = v1[0] * v2[1] - v1[1] * v2[0];
+	res[0] = v[1] * (t1 - u[2]) - t4;
+	res[1] = u[2] * v[0] - t3;
+	res[2] = t4 - u[1] * (v[0] - t2);
 	return res;
+}
+
+float SignedVolume(vec3f& u, vec3f& v, vec3f& w)
+{
+	return u.Dot(Cross(v, w));
+}
+
+
+//compute barycentric coordinates u,v,w for
+//P with respect to triangle(A,B,C);
+void Barycentric(vec2f& A, vec2f& B, vec2f& C, vec2f& P, float& u, float& v, float& w)
+{
+	vec2f v0 = B - A, v1 = C - A, v2 = P - A;
+	float d00 = v0.sqmodule(), d01 = v0.Dot(v1), d11 = v1.sqmodule();
+	float d20 = v2.Dot(v0), d21 = v2.Dot(v1);
+	float det = d00*d11 - d01*d01;
+	v = (d11*d20 - d01*d21) / det;
+	w = (d00*d21 - d01*d20) / det;
+	u = 1.0f - v - w;
+}
+//compute barycentric coordinates u,v,w for all indicated
+//Points with respect to triangle(A,B,C);
+void Barycentric(vec2f& A, vec2f& B, vec2f& C, std::vector<vec2f>& Points, std::vector<float>& u, std::vector<float>& v, std::vector<float>& w)
+{
+	vec2f v0 = B - A, v1 = C - A;
+	float d00 = v0.sqmodule(), d01 = v0.Dot(v1), d11 = v1.sqmodule();
+	float det = d00*d11 - d01*d01;
+	for (uint32_t i = 0; i < Points.size(); ++i)
+	{
+		vec2f v2 = Points[i] - A;
+		float d20 = v2.Dot(v0), d21 = v2.Dot(v1);
+		v[i] = (d11*d20 - d01*d21) / det;
+		w[i] = (d00*d21 - d01*d20) / det;
+		u[i] = 1.0f - v[i] - w[i];
+	}
 }
 #endif // VECTOR_CLASS_H
 
