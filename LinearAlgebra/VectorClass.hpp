@@ -180,6 +180,17 @@ public:
 			res += v[i] * v[i];
 		return res;
 	}
+	T Dist(const Vector<T, Size>& vec)
+	{
+		T res;
+		for (size_t i; i < Size; ++i)
+		{
+			float aux = vec.v[i] - v[i];
+			res += aux*aux;
+		}
+		res = sqrt(res);
+		return res;
+	}
 	Vector<T, Size> normalize()
 	{
 		Vector<T, Size> res;
@@ -224,21 +235,21 @@ public:
 		q = v - p;
 	}
 #pragma region Subvectors
-	T x()
+	inline T x()
 	{
 		return v[0];
 	}
-	T y()
+	inline T y()
 	{
 		assert(Size >= 2);
 		return v[1];
 	}
-	T z()
+	inline T z()
 	{
 		assert(Size >= 3)
 		return v[2];
 	}
-	T w()
+	inline T w()
 	{
 		assert(Size >= 4);
 		return v[3];
@@ -249,6 +260,30 @@ public:
 		Vector<T, 2> res;
 		res[0] = v[0];
 		res[1] = v[1];
+		return res;
+	}
+	Vector<T, 2> xz()
+	{
+		assert(Size >= 3);
+		Vector<T, 2> res;
+		res[0] = v[0];
+		res[1] = v[2];
+		return res;
+	}
+	Vector<T, 2> yz()
+	{
+		assert(Size >= 3);
+		Vector<T, 2> res;
+		res[0] = v[1];
+		res[1] = v[2];
+		return res;
+	}
+	Vector<T, 2> xw()
+	{
+		assert(Size >= 4);
+		Vector<T, 2> res;
+		res[0] = v[2];
+		res[1] = v[3];
 		return res;
 	}
 	Vector<T, 3> xyz()
@@ -272,8 +307,8 @@ typedef Vector<double, 2> vec2d;
 typedef Vector<double, 3> vec3d;
 typedef Vector<double, 4> vec4d;
 
-
-vec3f Cross(vec3f& u, vec3f& v)
+template<typename T>
+Vector<T,3> Cross(Vector<T, 3>& u, Vector<T, 3>& v)
 {
 	vec3f res;
 	float t1, t2, t3, t4;
@@ -287,21 +322,9 @@ vec3f Cross(vec3f& u, vec3f& v)
 	return res;
 }
 
-vec3d Cross(vec3d& v1, vec3d& v2)
-{
-	vec3d res;
-	double t1, t2, t3, t4;
-	t1 = u[0] - u[1];	t2 = v[1] + v[2];	t3 = u[0] * v[2];	t4 = t1*t2 - t3;
-	//res[0] = v1[1] * v2[2] - v1[2] * v2[1];
-	//res[1] = v1[2] * v2[0] - v1[0] * v2[2];
-	//res[2] = v1[0] * v2[1] - v1[1] * v2[0];
-	res[0] = v[1] * (t1 - u[2]) - t4;
-	res[1] = u[2] * v[0] - t3;
-	res[2] = t4 - u[1] * (v[0] - t2);
-	return res;
-}
 
-float SignedVolume(vec3f& u, vec3f& v, vec3f& w)
+template<typename T>
+T SignedVolume(Vector<T, 3>& u, Vector<T, 3>& v, Vector<T, 3>& w)
 {
 	return u.Dot(Cross(v, w));
 }
@@ -309,31 +332,88 @@ float SignedVolume(vec3f& u, vec3f& v, vec3f& w)
 
 //compute barycentric coordinates u,v,w for
 //P with respect to triangle(A,B,C);
-void Barycentric(vec2f& A, vec2f& B, vec2f& C, vec2f& P, float& u, float& v, float& w)
+template<typename T>
+void Barycentric(Vector<T, 2>& A, Vector<T, 2>& B, Vector<T, 2>& C, Vector<T, 2>& P, T& u, T& v, T& w)
 {
 	vec2f v0 = B - A, v1 = C - A, v2 = P - A;
-	float d00 = v0.sqmodule(), d01 = v0.Dot(v1), d11 = v1.sqmodule();
-	float d20 = v2.Dot(v0), d21 = v2.Dot(v1);
-	float det = d00*d11 - d01*d01;
+	T d00 = v0.sqmodule(), d01 = v0.Dot(v1), d11 = v1.sqmodule();
+	T d20 = v2.Dot(v0), d21 = v2.Dot(v1);
+	T det = d00*d11 - d01*d01;
 	v = (d11*d20 - d01*d21) / det;
 	w = (d00*d21 - d01*d20) / det;
-	u = 1.0f - v - w;
+	u = T(1.0) - v - w;
 }
+
 //compute barycentric coordinates u,v,w for all indicated
 //Points with respect to triangle(A,B,C);
-void Barycentric(vec2f& A, vec2f& B, vec2f& C, std::vector<vec2f>& Points, std::vector<float>& u, std::vector<float>& v, std::vector<float>& w)
+template<typename T>
+void Barycentric(Vector<T, 2>& A, Vector<T, 2>& B, Vector<T, 2>& C, std::vector<Vector<T, 2>>& Points,
+	std::vector<T>& u, std::vector<T>& v, std::vector<T>& w)
 {
 	vec2f v0 = B - A, v1 = C - A;
-	float d00 = v0.sqmodule(), d01 = v0.Dot(v1), d11 = v1.sqmodule();
-	float det = d00*d11 - d01*d01;
+	T d00 = v0.sqmodule(), d01 = v0.Dot(v1), d11 = v1.sqmodule();
+	T det = d00*d11 - d01*d01;
 	for (uint32_t i = 0; i < Points.size(); ++i)
 	{
 		vec2f v2 = Points[i] - A;
-		float d20 = v2.Dot(v0), d21 = v2.Dot(v1);
+		T d20 = v2.Dot(v0), d21 = v2.Dot(v1);
 		v[i] = (d11*d20 - d01*d21) / det;
 		w[i] = (d00*d21 - d01*d20) / det;
 		u[i] = 1.0f - v[i] - w[i];
 	}
+}
+
+template<typename T>
+inline T TriArea2D(Vector<T, 2> v1, Vector<T, 2> v2, Vector<T, 2> v3)
+{
+	return (v1.x() - v2.x())*(v2.y() - v3.y()) - (v2.x() - v3.x())*(v1.y()*v2.y());
+}
+//compute barycentric coordinates (u,v,w) for point p
+//with respect to triangle (a,b,c)
+template<typename T>
+void Barycentric(Vector<T, 3>& a, Vector<T, 3>& b, Vector<T, 3>& c, Vector<T, 3>& p,
+	T& u, T& v, T& w)
+{
+	//Unnormalized triangle normal
+	vec3f m = Cross(b - a, c - a);
+	// Nominators and one-over-denominator for u and v ratios
+	T nu, nv, ood;
+	//absolute component for determining projection plane
+	T x = abs(m.x()), y = abs(m.y()), z = abs(m.z());
+	
+	//compute areas in plane of largest projection
+	if (x >= y && x >= z)
+	{
+		//x is the largest, project to the yz plane
+		nu = TriArea2D(p.yz(), b.yz(), c.yz());//Area of PBC in yz plane
+		nv = TriArea2D(p.yz(), c.yz(), a.yz());//Area of PCA in yz plane
+		ood = 1.0f / m.x();						//1/(2*area of ABC in yz plane)
+	}
+	else if(y >=x&&y>=z)
+	{
+		//y is the largest, project to the xz plane
+		nu = TriArea2D(p.xz(), b.xz(), c.xz());
+		nv = TriArea2D(p.xz(), c.xz(), a.xz());
+		ood = 1.0f / -m.y;
+	}
+	else 
+	{
+		//z is the largest, project to xy plane
+		nu = TriArea2D(p.xy(), b.xy(), c.xy());
+		nv = TriArea2D(p.xy(), c.xy(), a.xy());
+		ood = 1.0f / m.z;
+	}
+	u = nu*ood;
+	v = nv*ood;
+	w = T(1.0) - u - v;
+}
+//Test if point p is contained in triangle (a,b,c)
+template<typename T>
+bool TestPointTriangle(Vector<T, 3>& p, Vector<T, 3>& a, Vector<T, 3>& b, Vector<T, 3>& c)
+{
+	float u, v, w;
+	Barycentric(a, b, c, p, u, v, w);
+	return v >= 0.0f && w >= 0.0f && (v + w) <= 1.0f;
 }
 #endif // VECTOR_CLASS_H
 

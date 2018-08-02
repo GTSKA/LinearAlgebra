@@ -151,7 +151,9 @@
   <ItemGroup>
     <ClInclude Include="LinearAlgebra.hpp" />
     <ClInclude Include="LinearTransformations.hpp" />
+    <ClInclude Include="LineClass.hpp" />
     <ClInclude Include="MatrixClass.hpp" />
+    <ClInclude Include="PlaneClass.hpp" />
     <ClInclude Include="VectorClass.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

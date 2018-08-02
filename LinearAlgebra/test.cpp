@@ -5,13 +5,9 @@
 int main(void)
 {
 
-	Mat44f a{1,2,3,4,
-			0,2,3,4,
-			0,0,3,4,
-			0,0,0,4};
-	Mat44f b = a.Inverse();
-	std::cout << b << std::endl;
-	std::cout << b*a << std::endl;
+	vec3f u{ 1,4,-2 };
+	vec3f v{ 2,-3,-1 };
+	std::cout << Cross(u, v) << std::endl;
 	getchar();
 
 
